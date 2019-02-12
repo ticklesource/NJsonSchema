@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Threading.Tasks;
 using NJsonSchema.Annotations;
 using NJsonSchema.Generation;
@@ -15,7 +17,53 @@ namespace NJsonSchema.Tests.Generation
 
         public class Teacher : Person
         {
+            [Required]
             public string Class { get; set; }
+        }
+
+        public class Principal : Teacher
+        {
+            [Required]
+            public new string Name { get; set; }
+
+            public int NumberOfStaff { get; set; }
+        }
+
+        [Fact]
+        public async Task When_FlattenInheritanceHierarchy_is_enabled_and_OverrideProperties_is_enabled_then_duplicate_properties_are_overridden()
+        {
+            //Arrange
+            var settings = new JsonSchemaGeneratorSettings
+            {
+                DefaultEnumHandling = EnumHandling.String,
+                FlattenInheritanceHierarchy = true,
+                OverridePropertiesWhenFlattenInheritanceHierarchy = true
+            };
+
+            //Act
+            var schema = await JsonSchema4.FromTypeAsync(typeof(Principal), settings);
+            var data = schema.ToJson();
+
+            //Assert
+            Assert.True(schema.Properties.ContainsKey("Class"));
+            Assert.True(schema.Properties.ContainsKey("Name"));
+            Assert.True(schema.Properties.ContainsKey("NumberOfStaff"));
+        }
+
+        [Fact]
+        public async Task When_FlattenInheritanceHierarchy_is_enabled_and_OverrideProperties_is_disabled_throws_exception()
+        {
+            //Arrange
+            var settings = new JsonSchemaGeneratorSettings
+            {
+                DefaultEnumHandling = EnumHandling.String,
+                FlattenInheritanceHierarchy = true,
+                OverridePropertiesWhenFlattenInheritanceHierarchy = false
+            };
+
+            //Act & Assert
+            Assert.ThrowsAsync<InvalidOperationException>(async () => await JsonSchema4.FromTypeAsync(typeof(Principal), settings));
+            
         }
 
         [Fact]

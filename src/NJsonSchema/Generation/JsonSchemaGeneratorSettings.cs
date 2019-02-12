@@ -52,6 +52,9 @@ namespace NJsonSchema.Generation
         /// <summary>Gets or sets a value indicating whether to flatten the inheritance hierarchy instead of using allOf to describe inheritance (default: false).</summary>
         public bool FlattenInheritanceHierarchy { get; set; }
 
+        /// <summary>Gets or sets the value indicating whether to override properties when subclass has a property of the same name as super class</summary>
+        public bool OverridePropertiesWhenFlattenInheritanceHierarchy { get; set; }
+
         /// <summary>Gets or sets a value indicating whether to generate schemas for types in <see cref="KnownTypeAttribute"/> attributes (default: true).</summary>
         public bool GenerateKnownTypes { get; set; } = true;
 

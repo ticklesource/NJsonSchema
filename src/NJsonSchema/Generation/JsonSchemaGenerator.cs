@@ -720,8 +720,9 @@ namespace NJsonSchema.Generation
                         var typeDescription = Settings.ReflectionService.GetDescription(baseType, null, Settings);
                         if (!typeDescription.IsDictionary && !type.IsArray)
                         {
-                            await GeneratePropertiesAsync(baseType, schema, schemaResolver).ConfigureAwait(false);
+
                             var actualSchema = await GenerateInheritanceAsync(baseType, schema, schemaResolver).ConfigureAwait(false);
+                            await GeneratePropertiesAsync(baseType, schema, schemaResolver).ConfigureAwait(false);
 
                             GenerateInheritanceDiscriminator(baseType, schema, actualSchema ?? schema);
                         }
@@ -915,7 +916,16 @@ namespace NJsonSchema.Generation
 
                 var propertyName = GetPropertyName(property, propertyInfo);
                 if (parentSchema.Properties.ContainsKey(propertyName))
-                    throw new InvalidOperationException("The JSON property '" + propertyName + "' is defined multiple times on type '" + parentType.FullName + "'.");
+                {
+                    if (Settings.FlattenInheritanceHierarchy && Settings.OverridePropertiesWhenFlattenInheritanceHierarchy)
+                    {
+                        parentSchema.Properties.Remove(propertyName);
+                    }
+                    else
+                    {
+                        throw new InvalidOperationException("The JSON property '" + propertyName + "' is defined multiple times on type '" + parentType.FullName + "'.");
+                    }
+                }
 
                 var requiredAttribute = propertyAttributes.TryGetIfAssignableTo("System.ComponentModel.DataAnnotations.RequiredAttribute");
 
